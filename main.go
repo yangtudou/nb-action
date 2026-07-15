@@ -9,24 +9,34 @@ import (
 
 func main() {
 
-	// 1. 优先注册 Action，方便后面做智能路由判断
+	// 1. 优先注册 Action
 	RegisterActions(
 		os.Getenv("BARK_SERVER"),
 		os.Getenv("BARK_KEY"),
 	)
 
-	input := ReadInput()
-
 	// 如果什么参数都没传，默认调用 bark
 	if len(os.Args) < 2 {
+		input := ReadInput()
 		runSingleAction("bark", []string{}, input)
 		return
 	}
 
 	firstArg := os.Args[1]
 
+	// 【新增分流】：API 服务模式 -> .\nb-action.exe server 8080
+	if firstArg == "server" {
+		port := ""
+		if len(os.Args) > 2 {
+			port = os.Args[2]
+		}
+		StartServer(port)
+		return
+	}
+
 	// 2. 管道模式：nb-action.exe pipe random 64 , bark
 	if firstArg == "pipe" {
+		input := ReadInput()
 		// 切割参数，剥离 "pipe" 关键字
 		steps := parseByComma(os.Args[2:])
 		if len(steps) < 2 {
@@ -39,8 +49,9 @@ func main() {
 		return
 	}
 
-	// 3. 智能直达模式：如果第一个参数就是已注册的 Action 名字（如 random、test 等）
+	// 3. 智能直达模式：如果第一个参数就是已注册的 Action 名字（如 random、bark 等）
 	if _, ok := GetAction(firstArg); ok {
+		input := ReadInput()
 		runSingleAction(firstArg, os.Args[2:], input)
 		return
 	}
@@ -55,6 +66,7 @@ func main() {
 	flag.Parse()
 
 	args := flag.Args()
+	input := ReadInput()
 
 	runSingleAction(*actionName, args, input)
 }

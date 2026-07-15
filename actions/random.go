@@ -4,7 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
-	"strconv" // 👈 引入 strconv 用于解析命令行字符串
+	"strconv"
 )
 
 type Random struct{}
@@ -19,7 +19,7 @@ func (r *Random) Name() string {
 
 func (r *Random) Execute(
 	ctx context.Context,
-	args []string, // 👈 承接 main 传过来的 args 列表
+	args []string,
 	input map[string]interface{},
 ) (
 	map[string]interface{},

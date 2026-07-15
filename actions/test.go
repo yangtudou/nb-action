@@ -16,16 +16,22 @@ func (t *Test) Name() string {
 
 func (t *Test) Execute(
 	ctx context.Context,
-	args []string, // 👈 新增：对齐 Action 接口规范[cite: 4]
+	args []string,
 	input map[string]interface{},
 ) (
 	map[string]interface{},
 	error,
 ) {
+	// 默认拿传入的第一个参数作为 value
+	val := ""
+	if len(args) > 0 {
+		val = args[0]
+	}
 
 	return map[string]interface{}{
-		"received": input,
-		"args":     args, // 👈 顺便把参数也吐出来，方便你调试
-		"status":   "ok",
+		"value":          val,
+		"received_count": len(input),
+		"args":           args,
+		"status":         "ok",
 	}, nil
 }
