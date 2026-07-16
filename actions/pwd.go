@@ -8,7 +8,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"golang.zx2c4.com/wireguard/conn"
+	// 引入 Curve25519 库，用来真正计算出公钥
+	"golang.org/x/crypto/curve25519"
 )
 
 type Password struct{}
@@ -45,36 +46,31 @@ func (p *Password) Execute(
 	}
 }
 
-// generateWGKeypair 生成 WireGuard 密钥对
+// generateWGKeypair 生成真实的 WireGuard 密钥对
 func (p *Password) generateWGKeypair() (map[string]interface{}, error) {
-	// 使用 WireGuard 官方库生成密钥对
-	privKey := conn.Endpoint{} // 这里需要用正确的 WireGuard 密钥结构
-	
-	// 实际上，WireGuard 官方库的密钥在 device.go 中
-	// 让我们手动生成符合 WireGuard 标准的密钥对
-	
 	var privateKey [32]byte
 	_, err := rand.Read(privateKey[:])
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate random bytes: %w", err)
 	}
 
-	// WireGuard 标准：clamp scalar for Curve25519
+	// WireGuard 标准：针对 Curve25519 算法进行特殊位处理 (Clamping)
 	privateKey[0] &= 248
 	privateKey[31] = (privateKey[31] & 127) | 64
 
-	// 使用 conn 包中的公钥计算方式（实际上我们需要 curve25519）
-	// 为了保持依赖简洁，使用 WireGuard 推荐的方式
-	
-	privateKeyHex := hex.EncodeToString(privateKey[:])
-	
-	// 公钥计算需要用到 curve25519，但这里用 conn 包会比较复杂
-	// 更简单的方式是返回私钥，让用户用 wg 命令计算公钥
-	// 或者我们包含 golang.org/x/crypto
-	
+	// 计算公钥 (通过私钥和 Basepoint 计算)
+	publicKey, err := curve25519.X25519(privateKey[:], curve25519.Basepoint)
+	if err != nil {
+		return nil, fmt.Errorf("failed to calculate public key: %w", err)
+	}
+
 	return map[string]interface{}{
-		"private_key": privateKeyHex,
-		"public_key":  "", // 需要完整的 curve25519 实现
+		// 标准的 WireGuard 密钥都是 Base64 编码的
+		"private_key": base64.StdEncoding.EncodeToString(privateKey[:]),
+		"public_key":  base64.StdEncoding.EncodeToString(publicKey),
+		// 顺便保留一份十六进制格式备用
+		"private_key_hex": hex.EncodeToString(privateKey[:]),
+		"public_key_hex":  hex.EncodeToString(publicKey),
 	}, nil
 }
 
