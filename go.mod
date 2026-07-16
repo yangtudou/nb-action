@@ -4,7 +4,7 @@ go 1.26.4
 
 require (
 	github.com/google/go-containerregistry v0.21.7
-	golang.zx2c4.com/wireguard v0.0.0-20231211153847-12269c276173
+	golang.org/x/crypto v0.17.0
 )
 
 require (
@@ -14,7 +14,6 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.1 // indirect
 	github.com/sirupsen/logrus v1.9.4 // indirect
-	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/sync v0.21.0 // indirect
 	golang.org/x/sys v0.46.0 // indirect
 	gotest.tools/v3 v3.5.2 // indirect
