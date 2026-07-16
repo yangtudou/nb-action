@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	"context"
@@ -10,13 +10,21 @@ import (
 )
 
 // StartServer 启动极简 HTTP API 服务
-func StartServer(port string) {
+func StartServer(
+	runtime *Runtime,
+	port string,
+) {
 	if port == "" {
 		port = "8080"
 	}
 
 	// 强制只有 /api/v1/action/ 下的请求才进入处理逻辑
-	http.HandleFunc("/api/v1/action/", handleAction)
+	http.HandleFunc(
+		"/api/v1/action/",
+		func(w http.ResponseWriter, r *http.Request) {
+			handleAction(runtime, w, r)
+		},
+	)
 
 	fmt.Printf("🚀 Nb-Action API Server 正在运行在 http://127.0.0.1:%s\n", port)
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
@@ -24,7 +32,11 @@ func StartServer(port string) {
 	}
 }
 
-func handleAction(w http.ResponseWriter, r *http.Request) {
+func handleAction(
+	runtime *Runtime,
+	w http.ResponseWriter,
+	r *http.Request,
+) {
 	path := strings.TrimPrefix(r.URL.Path, "/api/v1/action/")
 	parts := strings.Split(strings.Trim(path, "/"), "/")
 
@@ -53,7 +65,7 @@ func handleAction(w http.ResponseWriter, r *http.Request) {
 	}
 	// -------------------------
 
-	action, ok := GetAction(actionName)
+	action, ok := runtime.Registry.GetAction(actionName)
 	if !ok {
 		http.Error(w, "Action Not Found", http.StatusNotFound)
 		return

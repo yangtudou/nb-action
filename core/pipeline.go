@@ -1,15 +1,15 @@
-package main
+package core
 
 import (
 	"context"
-	"encoding/json" // 👈 引入 JSON 库，用来智能格式化 map/slice 供下游展示
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
 )
 
 // parseByComma 升级版：完美支持 "wg-keypair,bark"、"wg-keypair, bark"、"wg-keypair , bark" 等所有人类迷惑行为
-func parseByComma(args []string) [][]string {
+func ParseByComma(args []string) [][]string {
 	var steps [][]string
 	var current []string
 
@@ -82,7 +82,11 @@ func resolveArgs(args []string, input map[string]interface{}) []string {
 }
 
 // runPipeline 内存直接传递 Map，并且【合并】每一步的输出，防止数据在传递中丢失
-func runPipeline(ctx context.Context, steps [][]string, initialInput map[string]interface{}) {
+func (r *Runtime) RunPipeline(
+	ctx context.Context,
+	steps [][]string,
+	initialInput map[string]interface{},
+) {
 	// 初始化累积 Context，防止空指针，并将初始输入深拷贝进去
 	currentInput := make(map[string]interface{})
 	if initialInput != nil {
@@ -98,7 +102,7 @@ func runPipeline(ctx context.Context, steps [][]string, initialInput map[string]
 		actionName := step[0]
 		actionArgs := step[1:]
 
-		action, ok := GetAction(actionName)
+		action, ok := r.Registry.GetAction(actionName)
 		if !ok {
 			WriteError(fmt.Errorf("action not found in pipeline: %s", actionName))
 			os.Exit(1)

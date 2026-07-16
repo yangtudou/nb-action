@@ -24,6 +24,54 @@ func (a *RegistrySync) Name() string {
 	return "registry-sync"
 }
 
+func (r *RegistrySync) Description() string {
+	return "Docker 镜像仓库同步"
+}
+
+func (r *RegistrySync) Help() string {
+	return `
+registry-sync
+
+Docker 镜像仓库同步工具
+
+Usage:
+  nb-action registry-sync [options]
+
+Required:
+  --dst-prefix <registry>
+        目标镜像仓库
+
+Options:
+  --src-prefix <registry>
+        源镜像仓库
+
+  --file <path>
+        镜像列表文件
+
+  --src-flatten
+        源仓库路径扁平化
+
+  --dst-flatten
+        目标仓库路径扁平化
+
+  --concurrency <number>
+        并发数量
+
+  --retries <number>
+        重试次数
+
+  --dry-run
+        仅显示同步计划，不执行
+
+Examples:
+  nb-action registry-sync \
+    --src-prefix docker.io \
+    --dst-prefix registry.example.com \
+    --file images.txt
+
+`
+}
+
 func (a *RegistrySync) Execute(ctx context.Context, args []string, input map[string]interface{}) (map[string]interface{}, error) {
 	// 1. 使用局部的 FlagSet，命令名对应 "registry-sync"
 	fs := flag.NewFlagSet("registry-sync", flag.ContinueOnError)

@@ -14,6 +14,25 @@ func (t *Test) Name() string {
 	return "test"
 }
 
+func (t *Test) Description() string {
+	return "测试 Action，用于验证管道和执行流程"
+}
+
+func (t *Test) Help() string {
+	return `
+test
+
+测试 Action，用于验证管道和执行流程
+
+Usage:
+  nb-action test
+
+Examples:
+  nb-action test
+  nb-action pipe pwd rand 8,test
+`
+}
+
 func (t *Test) Execute(
 	ctx context.Context,
 	args []string,
