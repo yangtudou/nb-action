@@ -3,58 +3,43 @@ package bark
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"encoding/base64"
-	"encoding/json"
-	"fmt"
-	"net/url"
-	"os"
 )
 
-func encrypt(
-	payload BarkPayload,
+func aesGCMEncrypt(
+	key []byte,
+	iv []byte,
+	data []byte,
 ) (
-	string,
+	[]byte,
 	error,
 ) {
 
-	key := os.Getenv("BARK_AES_KEY")
-	iv := os.Getenv("BARK_AES_IV")
-
-	if len(key) != 32 || len(iv) != 12 {
-		return "",
-			fmt.Errorf(
-				"BARK_AES_KEY(32位) 或 BARK_AES_IV(12位) 环境变量配置错误",
-			)
-	}
-
-	data, err := json.Marshal(payload)
+	// 第一步：
+	// 使用 key 创建 AES 加密器
+	block, err := aes.NewCipher(key)
 
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	block, err := aes.NewCipher(
-		[]byte(key),
-	)
-
-	if err != nil {
-		return "", err
-	}
-
+	// 第二步：
+	// 使用 AES 加密器创建 GCM 模式
 	gcm, err := cipher.NewGCM(block)
 
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	encrypted := gcm.Seal(
+	// 第三步：
+	// 使用 GCM 对数据进行加密
+	ciphertext := gcm.Seal(
 		nil,
-		[]byte(iv),
+		iv,
 		data,
 		nil,
 	)
 
-	return url.QueryEscape(
-		base64.StdEncoding.EncodeToString(encrypted),
-	), nil
+	// 第四步：
+	// 返回加密后的数据
+	return ciphertext, nil
 }

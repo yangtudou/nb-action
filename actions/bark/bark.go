@@ -29,17 +29,16 @@ func (b *Bark) Execute(
 	input map[string]interface{},
 ) (map[string]interface{}, error) {
 
-	title, body, sound := parseInput(args, input)
+	title, body := parseInput(args, input)
 
 	if body == "" {
-		return nil, fmt.Errorf("缺少消息内容 (body)")
+		return nil, fmt.Errorf("缺少推送内容！")
 	}
 
 	ciphertext, err := encrypt(
 		BarkPayload{
 			Title: title,
 			Body:  body,
-			Sound: sound,
 		},
 	)
 
@@ -58,20 +57,14 @@ func parseInput(
 ) (
 	string,
 	string,
-	string,
 ) {
 
 	var title string
 	var body string
-	var sound string
 
 	if len(args) >= 2 {
 		title = args[0]
 		body = args[1]
-
-		if len(args) >= 3 {
-			sound = args[2]
-		}
 
 	} else if len(args) == 1 {
 		body = args[0]
@@ -90,14 +83,5 @@ func parseInput(
 		}
 	}
 
-	if sound == "" {
-
-		if value, ok := input["sound"].(string); ok {
-			sound = value
-		} else {
-			sound = "birdsong"
-		}
-	}
-
-	return title, body, sound
+	return title, body
 }
